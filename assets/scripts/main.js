@@ -39,9 +39,7 @@ function initializeServiceWorker() {
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", (event) => {
       try {
-        navigator.serviceWorker.register("/sw.js", {
-          scope: "/",
-        });
+        navigator.serviceWorker.register("/sw.js");
         console.log("Service Worker: ./sw.js was registered successfully");
       }
       catch (error){
