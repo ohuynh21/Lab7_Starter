@@ -35,6 +35,20 @@ async function init() {
 function initializeServiceWorker() {
   // EXPLORE - START (All explore numbers start with B)
   /*******************/
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", (event) => {
+      try {
+        navigator.serviceWorker.register("/sw.js", {
+          scope: "/",
+        });
+        console.log("Service Worker: ./sw.js was registered successfully");
+      }
+      catch (error){
+        console.error(`Registration failed with ${error}`);
+      }
+    });
+  }
   // ServiceWorkers have many uses, the most common of which is to manage
   // local caches, intercept network requests, and conditionally serve from
   // those local caches. This increases performance since users aren't
@@ -68,40 +82,42 @@ async function getRecipes() {
   // EXPOSE - START (All expose numbers start with A)
   // A1. TODO - Check local storage to see if there are any recipes.
   //            If there are recipes, return them.
+  const localRecipes = localStorage.getItem("recipes");
+  if (localRecipes != null){
+    return JSON.parse(localRecipes);
+  }
   /**************************/
   // The rest of this method will be concerned with requesting the recipes
   // from the network
   // A2. TODO - Create an empty array to hold the recipes that you will fetch
+  const remoteRecipes = [];
   // A3. TODO - Return a new Promise. If you are unfamiliar with promises, MDN
   //            has a great article on them. A promise takes one parameter - A
   //            function (we call these callback functions). That function will
   //            take two parameters - resolve, and reject. These are functions
   //            you can call to either resolve the Promise or Reject it.
   /**************************/
-  // A4-A11 will all be *inside* the callback function we passed to the Promise
-  // we're returning
-  /**************************/
-  // A4. TODO - Loop through each recipe in the RECIPE_URLS array constant
-  //            declared above
-  // A5. TODO - Since we are going to be dealing with asynchronous code, create
-  //            a try / catch block. A6-A9 will be in the try portion, A10-A11
-  //            will be in the catch portion.
-  // A6. TODO - For each URL in that array, fetch the URL - MDN also has a great
-  //            article on fetch(). NOTE: Fetches are ASYNCHRONOUS, meaning that
-  //            you must either use "await fetch(...)" or "fetch.then(...)". This
-  //            function is using the async keyword so we recommend "await"
-  // A7. TODO - For each fetch response, retrieve the JSON from it using .json().
-  //            NOTE: .json() is ALSO asynchronous, so you will need to use
-  //            "await" again
-  // A8. TODO - Add the new recipe to the recipes array
-  // A9. TODO - Check to see if you have finished retrieving all of the recipes,
-  //            if you have, then save the recipes to storage using the function
-  //            we have provided. Then, pass the recipes array to the Promise's
-  //            resolve() method.
-  // A10. TODO - Log any errors from catch using console.error
-  // A11. TODO - Pass any errors to the Promise's reject() function
+return new Promise(async (resolve, reject) => {
+    for (let i = 0; i < RECIPE_URLS.length; i += 1){
+      try {
+        const url = await fetch(RECIPE_URLS[i]);
+        const recipe = await url.json();
+        //console.log(JSON.stringify(recipe));
+        remoteRecipes.push(recipe);
+      }
+      catch (error){
+        console.error(error);
+      }
+    }
+    try{
+      localStorage.setItem("recipes", JSON.stringify(remoteRecipes));
+      resolve(remoteRecipes);
+    }
+    catch (error){
+      reject(error);
+    }
+  })
 }
-
 /**
  * Takes in an array of recipes, converts it to a string, and then
  * saves that string to 'recipes' in localStorage
