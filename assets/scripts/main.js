@@ -58,44 +58,31 @@ function initializeServiceWorker() {
  * @returns {Array<Object>} An array of recipes found in localStorage
  */
 async function getRecipes() {
-  // EXPOSE - START (All expose numbers start with A)
-  // A1. TODO - Check local storage to see if there are any recipes.
-  //            If there are recipes, return them.
   const localRecipes = localStorage.getItem("recipes");
   if (localRecipes != null){
     return JSON.parse(localRecipes);
   }
-  /**************************/
-  // The rest of this method will be concerned with requesting the recipes
-  // from the network
-  // A2. TODO - Create an empty array to hold the recipes that you will fetch
   const remoteRecipes = [];
-  // A3. TODO - Return a new Promise. If you are unfamiliar with promises, MDN
-  //            has a great article on them. A promise takes one parameter - A
-  //            function (we call these callback functions). That function will
-  //            take two parameters - resolve, and reject. These are functions
-  //            you can call to either resolve the Promise or Reject it.
-  /**************************/
-return new Promise(async (resolve, reject) => {
-    for (let i = 0; i < RECIPE_URLS.length; i += 1){
-      try {
-        const url = await fetch(RECIPE_URLS[i]);
-        const recipe = await url.json();
-        //console.log(JSON.stringify(recipe));
-        remoteRecipes.push(recipe);
+  return new Promise(async (resolve, reject) => {
+      for (let i = 0; i < RECIPE_URLS.length; i += 1){
+        try {
+          const url = await fetch(RECIPE_URLS[i]);
+          const recipe = await url.json();
+          //console.log(JSON.stringify(recipe));
+          remoteRecipes.push(recipe);
+        }
+        catch (error){
+          console.error(error);
+        }
+      }
+      try{
+        saveRecipesToStorage(remoteRecipes);
+        resolve(remoteRecipes);
       }
       catch (error){
-        console.error(error);
+        reject(error);
       }
-    }
-    try{
-      localStorage.setItem("recipes", JSON.stringify(remoteRecipes));
-      resolve(remoteRecipes);
-    }
-    catch (error){
-      reject(error);
-    }
-  })
+    })
 }
 /**
  * Takes in an array of recipes, converts it to a string, and then
